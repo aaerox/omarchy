@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Toggle monitor on/off using hyprctl
+
+if [ -z "$1" ]; then
+    echo "Usage: omarchy-monitor-toggle <monitor-name>"
+    echo "Example: omarchy-monitor-toggle HDMI-A-1"
+    exit 1
+fi
+
+MONITOR="$1"
+
+# Count number of active monitors
+ACTIVE_MONITORS=$(hyprctl monitors | grep -c "^Monitor")
+
+# Check if monitor is currently enabled
+# hyprctl monitors lists active monitors
+if hyprctl monitors | grep -q "^Monitor $MONITOR"; then
+    # Monitor is on, check if it's the last one
+    if [ "$ACTIVE_MONITORS" -le 1 ]; then
+        notify-send -u critical "Monitor" "Cannot disable last active monitor"
+        exit 1
+    fi
+    # Safe to turn it off
+    hyprctl keyword monitor "$MONITOR,disable"
+else
+    # Monitor is off, turn it on with proper positioning
+    case "$MONITOR" in
+        "DP-2")
+            hyprctl keyword monitor "$MONITOR,2560x1440@144,1920x0,1"
+            ;;
+        "HDMI-A-1")
+            hyprctl keyword monitor "$MONITOR,3840x2160@60,0x0,2"
+            ;;
+        *)
+            # Fallback for unknown monitors
+            hyprctl keyword monitor "$MONITOR,preferred,auto,auto"
+            ;;
+    esac
+fi
