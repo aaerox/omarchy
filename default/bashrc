@@ -9,3 +9,14 @@ source ~/.local/share/omarchy/default/bash/rc
 #
 # Make an alias for invoking commands you use constantly
 # alias p='python'
+
+. "$HOME/.local/share/../bin/env"
+
+# Added by Hugging Face CLI installer
+export PATH="/home/jon/.local/bin:$PATH"
+
+export CUDA_HOME=/opt/cuda
+export PATH="$CUDA_HOME/bin:$PATH"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
+
+alias c='wl-copy' 
