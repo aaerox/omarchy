@@ -16,7 +16,7 @@ get_color() {
 }
 
 BG=$(get_color "background")
-FG=$(get_color "foreground")
+FG=$(get_color "text")
 ACCENT=$(get_color "selected-text")
 
 # Update _wal.scss with new colors
@@ -38,7 +38,7 @@ fi
 # Restart AGS to apply new styles
 if pgrep -f "gjs.*ags" >/dev/null; then
     pkill -f "gjs.*ags"
-    sleep 0.3
+    sleep 0.5
     setsid uwsm-app -- ags run -d ~/.local/share/omarchy/config/ags --gtk 4 >/dev/null 2>&1 &
 fi
 
