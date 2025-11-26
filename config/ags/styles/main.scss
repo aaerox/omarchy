@@ -1,0 +1,9 @@
+@use "sass:color";
+@use "./_wal" as wal;
+@use "./_colors" as colors;
+@use "./_mixins" as mixins;
+@use "./_bar" as bar;
+
+* {
+  @include mixins.reset-props;
+}

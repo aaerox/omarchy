@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <!-- Sass -->
+    <gresource prefix="/io/omarchy/ags/styles">
+        <file alias="main">styles/main.scss</file>
+        <file alias="mixins">styles/_mixins.scss</file>
+        <file alias="wal">styles/_wal.scss</file>
+        <file alias="colors">styles/_colors.scss</file>
+        <file alias="bar">styles/_bar.scss</file>
+    </gresource>
+</gresources>

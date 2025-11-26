@@ -1,0 +1,12 @@
+#!/bin/bash
+# Disable waybar and ensure AGS is running
+
+killall waybar 2>/dev/null
+
+# Check if AGS is running
+if ! pgrep -x "ags" > /dev/null; then
+    uwsm-app -- ags --config ~/.local/share/omarchy/config/ags/config.js &
+    echo "AGS started"
+else
+    echo "AGS is already running"
+fi

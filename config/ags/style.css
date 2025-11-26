@@ -1,0 +1,173 @@
+.bar-container {
+  padding: 6px;
+  padding-bottom: 0px;
+}
+.bar-container label {
+  all: unset;
+  transition: 120ms linear;
+  font-family: "Adwaita Sans", "Cantarell", "Noto Sans", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK HK", "Noto Sans CJK SC", "Noto Sans CJK TC", sans-serif, "Symbols Nerd Font Mono";
+  color: #D9AFA7;
+  font-size: 12px;
+  font-weight: 600;
+}
+.bar-container > .bar-centerbox > * {
+  background: rgba(47, 27, 27, 0.6);
+  border-radius: 18px;
+  padding: 0 4px;
+}
+.bar-container > .bar-centerbox > * > box:not(.workspaces-row):not(.tray):not(.focused-client):not(.media):active, .bar-container > .bar-centerbox > * > button:active {
+  box-shadow: 0 0 0 2px #2F1B1B;
+}
+.bar-container > .bar-centerbox > * > box:not(.workspaces-row):not(.tray):not(.focused-client):not(.media), .bar-container > .bar-centerbox > * > button {
+  border-radius: 14px;
+  margin: 4px 0;
+  padding: 0 8px;
+}
+.bar-container > .bar-centerbox > * > box:not(.workspaces-row):not(.tray):not(.focused-client):not(.media):hover, .bar-container > .bar-centerbox > * > button:hover {
+  background: #2F1B1B;
+}
+.bar-container .workspaces-row {
+  padding: 4px;
+}
+.bar-container .workspaces-row .workspace {
+  transition: 80ms linear;
+  margin: 3px 0;
+  border-radius: 16px;
+  min-width: 14px;
+  padding: 0 6px;
+  background: rgb(92.3486486486, 53.0513513514, 53.0513513514);
+}
+.bar-container .workspaces-row .workspace:active {
+  border-radius: 10px;
+}
+.bar-container .workspaces-row .workspace label.id {
+  font-weight: 600;
+  margin-right: 4px;
+  opacity: 0;
+}
+.bar-container .workspaces-row .workspace.focus {
+  background: #FF6B4A;
+  min-width: 32px;
+}
+.bar-container .workspaces-row .workspace.focus label.id {
+  opacity: 0;
+  color: #2F1B1B;
+  margin-right: 0;
+}
+.bar-container .workspaces-row .workspace icon {
+  font-size: 16px;
+}
+.bar-container .workspaces-row .workspace.show label.id {
+  opacity: 1;
+}
+.bar-container .workspaces-row .workspace:hover:not(.last-client-icon):not(.focus) {
+  background: rgb(115.5056756757, 66.3543243243, 66.3543243243);
+}
+.bar-container .focused-client {
+  padding: 0 6px;
+}
+.bar-container .focused-client image {
+  margin-right: 6px;
+  -gtk-icon-size: 18px;
+}
+.bar-container .focused-client .text-content .class {
+  font-size: 9px;
+  font-family: monospace;
+  font-weight: 600;
+  color: rgb(200.080952381, 139.380952381, 127.819047619);
+  margin-top: 0px;
+}
+.bar-container .focused-client .text-content .title {
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: -2px;
+}
+.bar-container .clock.open {
+  background: #2F1B1B;
+}
+.bar-container .media {
+  background: #2F1B1B;
+  border-radius: 14px;
+  margin: 4px 0;
+  padding: 0 7px;
+}
+.bar-container .media image.player-icon {
+  -gtk-icon-size: 14px;
+  margin-right: 5px;
+}
+.bar-container .media .buttons {
+  margin-left: 5px;
+}
+.bar-container .media .button-row {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+.bar-container .media .button-row > button {
+  padding: 0px;
+  margin: 0 0px;
+  border-radius: 4px;
+}
+.bar-container .media .button-row > button:hover {
+  background: rgb(88.5378378378, 50.8621621622, 50.8621621622);
+}
+.bar-container .media .button-row > button image {
+  margin: 0;
+  -gtk-icon-size: 14px;
+}
+.bar-container .media:hover {
+  background: rgb(88.5378378378, 50.8621621622, 50.8621621622);
+}
+.bar-container .media:active {
+  box-shadow: 0 0 0 2px rgb(88.5378378378, 50.8621621622, 50.8621621622);
+}
+.bar-container .tray {
+  padding: 0 6px;
+}
+.bar-container .tray .item {
+  all: unset;
+}
+.bar-container .status {
+  all: unset;
+  transition: 120ms linear;
+  font-family: "Adwaita Sans", "Cantarell", "Noto Sans", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK HK", "Noto Sans CJK SC", "Noto Sans CJK TC", sans-serif, "Symbols Nerd Font Mono";
+  color: #D9AFA7;
+}
+.bar-container .status.open {
+  background: #2F1B1B;
+}
+.bar-container .status image {
+  -gtk-icon-size: 14px;
+}
+.bar-container .status revealer > box {
+  background: rgba(92.3486486486, 53.0513513514, 53.0513513514, 0.7);
+  border-radius: 12px;
+  margin: 4px 0;
+  margin-left: 5px;
+  padding: 2px 6px;
+}
+.bar-container .status .status-icons {
+  padding-left: 4px;
+}
+.bar-container .status .status-icons image.notification-count {
+  -gtk-icon-size: 6px;
+  margin-top: -14px;
+}
+.bar-container .apps {
+  min-width: 18px;
+}
+.bar-container .apps image {
+  transition: 120ms linear;
+  -gtk-icon-size: 14px;
+}
+.bar-container .apps.open {
+  background: #2F1B1B;
+}
+
+* {
+  all: unset;
+  transition: 120ms linear;
+  font-family: "Adwaita Sans", "Cantarell", "Noto Sans", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK HK", "Noto Sans CJK SC", "Noto Sans CJK TC", sans-serif, "Symbols Nerd Font Mono";
+  color: #D9AFA7;
+}
+
+/*# sourceMappingURL=style.css.map */

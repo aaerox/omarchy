@@ -106,6 +106,10 @@ child:selected .item-box * {
   font-style: italic;
 }
 
+.keybinds {
+  display: none;
+}
+
 .keybind-hints {
   background: @background;
   padding: 10px;
