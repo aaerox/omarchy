@@ -170,4 +170,47 @@
   color: #D9AFA7;
 }
 
+tooltip,
+tooltip.background {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+tooltip > box,
+tooltip.background > box {
+  padding: 7px 8px;
+  margin: 12px;
+  margin-top: 0;
+  border-radius: 12px;
+  background: rgba(47, 27, 27, 0.98);
+  box-shadow: 0 5px 6px 1px rgba(47, 27, 27, 0.75);
+}
+tooltip > box label,
+tooltip.background > box label {
+  font-size: 13.1px;
+  font-weight: 500;
+  color: #D9AFA7;
+}
+
+popover.menu contents {
+  background: #2F1B1B;
+  border-radius: 14px;
+  padding: 4px;
+}
+popover.menu contents viewport > stack > * > * > * > separator {
+  min-height: 0.5px;
+  margin: 3px 2px;
+  background: rgba(200.080952381, 139.380952381, 127.819047619, 0.1);
+}
+popover.menu contents viewport > stack > * > * > * > *:not(separator) > * {
+  padding: 6px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+popover.menu contents viewport > stack > * > * > * > *:not(separator) > *:hover, popover.menu contents viewport > stack > * > * > * > *:not(separator) > *:focus {
+  background: rgb(92.3486486486, 53.0513513514, 53.0513513514);
+}
+
 /*# sourceMappingURL=style.css.map */

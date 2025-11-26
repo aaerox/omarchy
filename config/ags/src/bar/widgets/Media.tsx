@@ -1,12 +1,11 @@
 import { createBinding, With } from "ags";
 import { Gtk } from "ags/gtk4";
 import { Separator } from "../../widget/Separator";
-import { Windows } from "../../windows";
-import { Clipboard } from "../../modules/clipboard";
 import { getPlayerIconFromBusName, secureBaseBinding, variableToBoolean } from "../../modules/utils";
 import { default as Player } from "../../modules/media";
 
 import AstalMpris from "gi://AstalMpris";
+import AstalHyprland from "gi://AstalHyprland";
 import Pango from "gi://Pango?version=1.0";
 
 
@@ -41,7 +40,14 @@ export const Media = () =>
               return true;
           }}
         />
-        <Gtk.GestureClick onReleased={() => Windows.getDefault().toggle("center-window")} />
+        <Gtk.GestureClick onReleased={() => {
+            const busName = Player.getDefault().player?.busName ?? "";
+            const playerName = busName.split(".").pop() ?? "";
+            if (playerName) {
+                const className = playerName.charAt(0).toUpperCase() + playerName.slice(1);
+                AstalHyprland.get_default().dispatch("focuswindow", `class:${className}`);
+            }
+        }} />
         <Gtk.EventControllerMotion onEnter={(self) => {
               const revealer = self.get_widget()!.get_last_child() as Gtk.Revealer;
               revealer.set_reveal_child(true);

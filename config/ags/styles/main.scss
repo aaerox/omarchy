@@ -7,3 +7,51 @@
 * {
   @include mixins.reset-props;
 }
+
+tooltip,
+tooltip.background {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+tooltip > box,
+tooltip.background > box {
+  padding: 7px 8px;
+  margin: 12px;
+  margin-top: 0;
+  border-radius: 12px;
+  background: rgba(colors.$bg-primary, .98);
+  box-shadow: 0 5px 6px 1px colors.$bg-translucent-primary;
+
+  & label {
+    font-size: 13.1px;
+    font-weight: 500;
+    color: colors.$fg-primary;
+  }
+}
+
+popover.menu contents {
+  background: wal.$background;
+  border-radius: 14px;
+  padding: 4px;
+
+  & viewport > stack > * > * > * {
+    & > separator {
+      min-height: .5px;
+      margin: 3px 2px;
+      background: rgba(colors.$fg-disabled, .1);
+    }
+
+    & > *:not(separator) > * {
+      padding: 6px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+
+      &:hover, &:focus {
+        background: colors.$bg-tertiary;
+      }
+    }
+  }
+}
