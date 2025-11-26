@@ -72,14 +72,14 @@ export const Media = () =>
                     />
                     <Gtk.Label class={"title"} label={secureBaseBinding<AstalMpris.Player>(createBinding(
                           Player.getDefault(), "player"
-                      ), "title", "").as(title => title ?? "No title")}
+                      ), "title", "").as(title => title || "No title")}
                       maxWidthChars={20} ellipsize={Pango.EllipsizeMode.END}
                     />
                     <Separator orientation={Gtk.Orientation.HORIZONTAL} size={1} margin={5}
                       alpha={.3} spacing={6} />
                     <Gtk.Label class={"artist"} label={secureBaseBinding<AstalMpris.Player>(createBinding(
                           Player.getDefault(), "player"
-                      ), "artist", "").as(artist => artist ?? "No artist")}
+                      ), "artist", "").as(artist => artist || "Unknown")}
                       maxWidthChars={18} ellipsize={Pango.EllipsizeMode.END}
                     />
                 </Gtk.Box>}

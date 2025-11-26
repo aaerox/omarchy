@@ -40,6 +40,7 @@ omarchy-theme-set-vscode
 omarchy-theme-set-cursor
 omarchy-theme-set-obsidian
 omarchy-theme-set-ags
+omarchy-theme-set-yazi
 
 # Call hook on theme set
 omarchy-hook theme-set "$THEME_NAME"

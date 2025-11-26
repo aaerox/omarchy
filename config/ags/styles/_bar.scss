@@ -139,21 +139,20 @@ $color-hover: colors.$bg-primary;
     }
 
     & .button-row {
-      border-top-right-radius: 12px;
-      border-bottom-right-radius: 12px;
-      // padding: 0 4px;
+      border-radius: 8px;
+      padding: 0;
+      margin: 4px 0;
+      background: rgba(255, 255, 255, 0.08);
 
       & > button {
-        // min-width: 20px;
-        // min-height: 20px;
-        padding: 0px;
-        margin: 0 0px;
-        // background: rgba(255, 255, 255, 0.05);
-        border-radius: 4px;
+        min-width: 22px;
+        min-height: 22px;
+        padding: 3px;
+        margin: 0 1px;
+        border-radius: 5px;
 
         &:hover {
-          // background: rgba(255, 255, 255, 0.1);
-          background: $hover-color;
+          background: colors.$accent;
         }
 
         & image {

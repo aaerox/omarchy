@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Sets yazi theme from current omarchy theme
+
+CURRENT_THEME="$HOME/.config/omarchy/current/theme"
+THEME_YAZI="$CURRENT_THEME/theme-yazi.toml"
+YAZI_CONF="$HOME/.config/yazi/theme.toml"
+
+# Skip if theme doesn't have yazi config
+[[ ! -f "$THEME_YAZI" ]] && exit 0
+
+# Backup existing non-symlink config
+if [[ -f "$YAZI_CONF" ]] && [[ ! -L "$YAZI_CONF" ]]; then
+  cp "$YAZI_CONF" "$YAZI_CONF.backup.$(date +%Y%m%d_%H%M%S)"
+fi
+
+ln -sf "$THEME_YAZI" "$YAZI_CONF"
+
+# Clear yazi state cache
+rm -rf "$HOME/.local/state/yazi"

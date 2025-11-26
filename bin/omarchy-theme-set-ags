@@ -1,23 +1,52 @@
 #!/bin/bash
 
-# Generates AGS theme from omarchy walker.css colors
+# Generates AGS theme from omarchy theme colors
 
 THEME_DIR="$HOME/.config/omarchy/current/theme"
-WALKER="$THEME_DIR/walker.css"
+WAYBAR="$THEME_DIR/waybar.css"
+HYPRLAND="$THEME_DIR/hyprland.conf"
 
-if [[ ! -f "$WALKER" ]]; then
-    echo "No walker.css found in current theme"
-    exit 1
-fi
-
-# Get color from walker.css (@define-color name #hex;)
-get_color() {
-    grep "@define-color $1" "$WALKER" | head -1 | sed -E 's/.*#([^;]+);.*/#\1/'
+# Get color from waybar.css (@define-color name #hex; or rgba(...);)
+get_waybar_color() {
+    local line=$(grep "@define-color $1" "$WAYBAR" | head -1)
+    if [[ "$line" =~ rgba?\( ]]; then
+        # Extract rgba/rgb value
+        echo "$line" | sed -E 's/.*@define-color [^ ]+ (rgba?\([^)]+\));.*/\1/'
+    else
+        # Extract hex value
+        echo "$line" | sed -E 's/.*#([^;]+);.*/#\1/'
+    fi
 }
 
-BG=$(get_color "background")
-FG=$(get_color "text")
-ACCENT=$(get_color "selected-text")
+# Get active border color from hyprland.conf
+# Handles: rgb(XXXXXX), rgba(XXXXXXXX), or gradient rgba(XXX) rgba(XXX) angle
+# If gradient, blends the two colors
+get_accent() {
+    # Try $activeBorderColor variable first, then col.active_border
+    local line=$(grep '^\$activeBorderColor' "$HYPRLAND" | head -1)
+    [[ -z "$line" ]] && line=$(grep 'col.active_border' "$HYPRLAND" | head -1)
+    # Extract all hex colors (first 6 chars of each rgba/rgb)
+    local colors=($(echo "$line" | grep -oE 'rgba?\([0-9a-fA-F]+\)' | sed -E 's/rgba?\(([0-9a-fA-F]{6}).*/\1/'))
+
+    if [[ ${#colors[@]} -eq 1 ]]; then
+        echo "#${colors[0]}"
+    elif [[ ${#colors[@]} -ge 2 ]]; then
+        # Blend two colors by averaging RGB components
+        local r1=$((16#${colors[0]:0:2}))
+        local g1=$((16#${colors[0]:2:2}))
+        local b1=$((16#${colors[0]:4:2}))
+        local r2=$((16#${colors[1]:0:2}))
+        local g2=$((16#${colors[1]:2:2}))
+        local b2=$((16#${colors[1]:4:2}))
+        printf "#%02x%02x%02x" $(((r1+r2)/2)) $(((g1+g2)/2)) $(((b1+b2)/2))
+    else
+        echo "#ff6b4a"  # fallback
+    fi
+}
+
+BG=$(get_waybar_color "background")
+FG=$(get_waybar_color "foreground")
+ACCENT=$(get_accent)
 
 # Update _wal.scss with new colors
 WAL_SCSS="$HOME/.local/share/omarchy/config/ags/styles/_wal.scss"
