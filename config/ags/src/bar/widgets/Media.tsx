@@ -44,8 +44,7 @@ export const Media = () =>
             const busName = Player.getDefault().player?.busName ?? "";
             const playerName = busName.split(".").pop() ?? "";
             if (playerName) {
-                const className = playerName.charAt(0).toUpperCase() + playerName.slice(1);
-                AstalHyprland.get_default().dispatch("focuswindow", `class:${className}`);
+                AstalHyprland.get_default().dispatch("focuswindow", `class:${playerName}`);
             }
         }} />
         <Gtk.EventControllerMotion onEnter={(self) => {

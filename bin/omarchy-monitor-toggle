@@ -26,10 +26,10 @@ else
     # Monitor is off, turn it on with proper positioning
     case "$MONITOR" in
         "DP-2")
-            hyprctl keyword monitor "$MONITOR,2560x1440@144,1920x0,1"
+            hyprctl keyword monitor "$MONITOR,2560x1440@144,0x0,1"
             ;;
         "HDMI-A-1")
-            hyprctl keyword monitor "$MONITOR,3840x2160@60,0x0,2"
+            hyprctl keyword monitor "$MONITOR,3840x2160@60,-1920x0,2"
             ;;
         *)
             # Fallback for unknown monitors
