@@ -152,12 +152,13 @@ export class Windows extends GObject.Object {
     }
 
     public createWindowForMonitors(create: (mon: number) => GObject.Object|Astal.Window): (() => Array<Astal.Window>) {
-        const monitors = AstalHyprland.get_default().get_monitors();
+        return () => {
+            const monitors = AstalHyprland.get_default().get_monitors();
 
-        if(monitors.length < 1)
-            throw new Error("Couldn't create window for monitors");
+            if(monitors.length < 1)
+                throw new Error("Couldn't create window for monitors");
 
-        return () => monitors.map(mon => {
+            return monitors.map(mon => {
             return createRoot(() => {
                 const scope = getScope();
                 const instance = create(mon.id) as Astal.Window;
@@ -173,7 +174,7 @@ export class Windows extends GObject.Object {
 
                 return instance;
             })
-        })
+        })}
     }
 
     public createWindowForFocusedMonitor(create: (mon: number) => GObject.Object|Astal.Window): (() => Astal.Window) {
