@@ -8,22 +8,14 @@ if [ -z "$1" ]; then
 fi
 
 MONITOR="$1"
+AUDIO_MONITOR="DP-3"  # Anthem MRX 540 AV receiver (audio-only via DP->HDMI)
 
-# Count number of active monitors
-ACTIVE_MONITORS=$(hyprctl monitors | grep -c "^Monitor")
+# Check DPMS and enabled state via JSON
+DPMS_STATUS=$(hyprctl monitors all -j | jq -r --arg m "$MONITOR" '.[] | select(.name == $m) | .dpmsStatus')
+DISABLED=$(hyprctl monitors all -j | jq -r --arg m "$MONITOR" '.[] | select(.name == $m) | .disabled')
 
-# Check if monitor is currently enabled
-# hyprctl monitors lists active monitors
-if hyprctl monitors | grep -q "^Monitor $MONITOR"; then
-    # Monitor is on, check if it's the last one
-    if [ "$ACTIVE_MONITORS" -le 1 ]; then
-        notify-send -u critical "Monitor" "Cannot disable last active monitor"
-        exit 1
-    fi
-    # Safe to turn it off
-    hyprctl keyword monitor "$MONITOR,disable"
-else
-    # Monitor is off, turn it on with proper positioning
+if [ "$DISABLED" = "true" ]; then
+    # Monitor is fully disabled, enable it
     case "$MONITOR" in
         "DP-2")
             hyprctl keyword monitor "$MONITOR,2560x1440@144,0x0,1"
@@ -32,8 +24,22 @@ else
             hyprctl keyword monitor "$MONITOR,3840x2160@60,-1920x0,2"
             ;;
         *)
-            # Fallback for unknown monitors
             hyprctl keyword monitor "$MONITOR,preferred,auto,auto"
+            ;;
+    esac
+elif [ "$DPMS_STATUS" = "false" ]; then
+    # Monitor is DPMS-off, wake it
+    hyprctl dispatch dpms on "$MONITOR"
+else
+    # Monitor is on, turn it off
+    case "$MONITOR" in
+        "DP-2")
+            # Use DPMS to avoid modeset that disrupts audio monitor
+            hyprctl dispatch dpms off "$MONITOR"
+            ;;
+        *)
+            # Fully disable (removes from layout)
+            hyprctl keyword monitor "$MONITOR,disable"
             ;;
     esac
 fi

@@ -7,6 +7,7 @@ import { Recording } from "../../modules/recording";
 import { Accessor, createBinding, createComputed, With } from "ags";
 import { variableToBoolean } from "../../modules/utils";
 import { Bluetooth } from "../../modules/bluetooth";
+import { Temperature } from "../../modules/temperature";
 
 import GObject from "ags/gobject";
 import AstalBluetooth from "gi://AstalBluetooth";
@@ -43,19 +44,7 @@ export const Status = () =>
             )}
           />
 
-          <VolumeStatus
-            class="source"
-            endpoint={Wireplumber.getDefault().getDefaultSource()}
-            icon={createBinding(
-              Wireplumber.getDefault().getDefaultSource(),
-              "volumeIcon"
-            ).as((icon) =>
-              !Wireplumber.getDefault().isMutedSource() &&
-              Wireplumber.getDefault().getSourceVolume() > 0
-                ? icon
-                : "microphone-sensitivity-muted-symbolic"
-            )}
-          />
+          <TemperatureStatus />
         </Gtk.Box>
         <Gtk.Revealer revealChild={createBinding(Recording.getDefault(), "recording")}
           transitionDuration={500} transitionType={Gtk.RevealerTransitionType.SLIDE_LEFT}>
@@ -136,6 +125,20 @@ function BatteryStatus(props: {
     <Gtk.Box visible={props.visible} spacing={2} class={props.class}>
       {props.icon && <Gtk.Image iconName={props.icon} />}
       <Gtk.Label class={"level"} label={props.percentage} />
+    </Gtk.Box>
+  ) as Gtk.Box;
+}
+
+function TemperatureStatus() {
+  return (
+    <Gtk.Box spacing={2} class={"temperature"}>
+      <Gtk.Image iconName={"xsi-temperature-symbolic"} />
+      <Gtk.Label
+        class={"temp"}
+        label={createBinding(Temperature.getDefault(), "temperature").as(
+          (temp) => `${temp}°`
+        )}
+      />
     </Gtk.Box>
   ) as Gtk.Box;
 }

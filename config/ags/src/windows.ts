@@ -6,6 +6,7 @@ import { Bar } from "./bar/Bar";
 // import { ControlCenter } from "./window/control-center";
 
 import AstalHyprland from "gi://AstalHyprland";
+import GLib from "gi://GLib";
 
 
 export type WindowInstance = { instance?: Astal.Window, connections: Array<number> };
@@ -26,6 +27,7 @@ export class Windows extends GObject.Object {
     };
 
     #scope!: ReturnType<typeof getScope>;
+    #reopenTimeout: number = 0;
     #windows: Record<string, WindowData> = {
         "bar": { create: this.createWindowForMonitors(Bar) },
         // "control-center": { create: this.createWindowForFocusedMonitor(ControlCenter), },
@@ -51,10 +53,9 @@ export class Windows extends GObject.Object {
 
             const hyprConnections = [
                 AstalHyprland.get_default().connect("monitor-added", () =>
-                    this.reopen()),
+                    this.debouncedReopen()),
                 AstalHyprland.get_default().connect("monitor-removed", () =>
-                    AstalHyprland.get_default().get_monitors().length > 0 &&
-                        this.reopen())
+                    this.debouncedReopen())
             ];
 
             onCleanup(() => {
@@ -259,6 +260,18 @@ export class Windows extends GObject.Object {
 
     public closeAll(): void {
         this.openWindows.forEach(name => this.close(name));
+    }
+
+    private debouncedReopen(): void {
+        if (this.#reopenTimeout)
+            GLib.source_remove(this.#reopenTimeout);
+
+        this.#reopenTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
+            this.#reopenTimeout = 0;
+            if (AstalHyprland.get_default().get_monitors().length > 0)
+                this.reopen();
+            return GLib.SOURCE_REMOVE;
+        });
     }
 
     public reopen(): void {
