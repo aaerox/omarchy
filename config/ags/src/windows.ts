@@ -2,11 +2,26 @@ import { Astal } from "ags/gtk4";
 import GObject, { getter, register, signal } from "ags/gobject";
 import { variableToBoolean } from "./modules/utils";
 import { createRoot, getScope, onCleanup } from "ags";
+import { exec } from "ags/process";
 import { Bar } from "./bar/Bar";
 // import { ControlCenter } from "./window/control-center";
 
 import AstalHyprland from "gi://AstalHyprland";
 import GLib from "gi://GLib";
+
+function getMirroredMonitorNames(): Set<string> {
+    try {
+        const json = exec("hyprctl monitors all -j");
+        const monitors: Array<{ name: string; mirrorOf: string }> = JSON.parse(json);
+        return new Set(
+            monitors
+                .filter(m => m.mirrorOf !== "" && m.mirrorOf !== "none")
+                .map(m => m.name)
+        );
+    } catch (_) {
+        return new Set();
+    }
+}
 
 
 export type WindowInstance = { instance?: Astal.Window, connections: Array<number> };
@@ -28,6 +43,7 @@ export class Windows extends GObject.Object {
 
     #scope!: ReturnType<typeof getScope>;
     #reopenTimeout: number = 0;
+    #pendingReopen: Array<string> | null = null;
     #windows: Record<string, WindowData> = {
         "bar": { create: this.createWindowForMonitors(Bar) },
         // "control-center": { create: this.createWindowForFocusedMonitor(ControlCenter), },
@@ -53,9 +69,9 @@ export class Windows extends GObject.Object {
 
             const hyprConnections = [
                 AstalHyprland.get_default().connect("monitor-added", () =>
-                    this.debouncedReopen()),
+                    this.debouncedReopen(false)),
                 AstalHyprland.get_default().connect("monitor-removed", () =>
-                    this.debouncedReopen())
+                    this.debouncedReopen(true))
             ];
 
             onCleanup(() => {
@@ -159,7 +175,8 @@ export class Windows extends GObject.Object {
             if(monitors.length < 1)
                 throw new Error("Couldn't create window for monitors");
 
-            return monitors.map(mon => {
+            const mirrored = getMirroredMonitorNames();
+            return monitors.filter(mon => !mirrored.has(mon.name)).map(mon => {
             return createRoot(() => {
                 const scope = getScope();
                 const instance = create(mon.id) as Astal.Window;
@@ -262,14 +279,24 @@ export class Windows extends GObject.Object {
         this.openWindows.forEach(name => this.close(name));
     }
 
-    private debouncedReopen(): void {
+    private debouncedReopen(closeImmediately: boolean = false): void {
+        if (this.openWindows.length > 0)
+            this.#pendingReopen = [...this.openWindows];
+
+        if (closeImmediately)
+            this.closeAll();
+
         if (this.#reopenTimeout)
             GLib.source_remove(this.#reopenTimeout);
 
-        this.#reopenTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
+        this.#reopenTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
             this.#reopenTimeout = 0;
-            if (AstalHyprland.get_default().get_monitors().length > 0)
-                this.reopen();
+            const wins = this.#pendingReopen ?? [];
+            this.#pendingReopen = null;
+            if (AstalHyprland.get_default().get_monitors().length > 0) {
+                this.closeAll();
+                wins.forEach(name => this.open(name));
+            }
             return GLib.SOURCE_REMOVE;
         });
     }
