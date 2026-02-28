@@ -30,11 +30,11 @@ export default class Media extends GObject.Object {
             return;
         }
 
-        // Otherwise prefer Spotify (even if paused)
-        const spotifyPlayer = players.find(p => p.busName.includes("spotify"));
-        if (spotifyPlayer) {
-            console.log(`Setting player to spotify: ${spotifyPlayer.busName}`);
-            this.player = spotifyPlayer;
+        // Otherwise prefer Feishin (even if paused)
+        const feishinPlayer = players.find(p => p.busName.toLowerCase().includes("feishin"));
+        if (feishinPlayer) {
+            console.log(`Setting player to feishin: ${feishinPlayer.busName}`);
+            this.player = feishinPlayer;
             return;
         }
 

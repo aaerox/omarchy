@@ -42,7 +42,7 @@ export const Media = () =>
         />
         <Gtk.GestureClick onReleased={() => {
             const busName = Player.getDefault().player?.busName ?? "";
-            const playerName = busName.split(".").pop() ?? "";
+            const playerName = busName.split(".").pop()?.toLowerCase() ?? "";
             if (playerName) {
                 AstalHyprland.get_default().dispatch("focuswindow", `class:${playerName}`);
             }
