@@ -59,6 +59,10 @@ export class OmarchyShell extends Astal.Application {
   private main(): void {
     Gtk.init();
 
+    // Register custom Madness icon theme
+    const iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default()!);
+    iconTheme.add_search_path(`${GLib.get_user_config_dir()}/ags/icons`);
+
     // Load simple CSS
     const cssPath = `${GLib.get_user_config_dir()}/ags/style.css`;
     const cssProvider = Gtk.CssProvider.new();

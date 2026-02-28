@@ -1,13 +1,12 @@
 import { Gtk } from "ags/gtk4";
 import { Wireplumber } from "../../modules/volume";
 import { Battery } from "../../modules/battery";
-import { Notifications } from "../../modules/notifications";
-import { Windows } from "../../windows";
 import { Recording } from "../../modules/recording";
 import { Accessor, createBinding, createComputed, With } from "ags";
-import { variableToBoolean } from "../../modules/utils";
 import { Bluetooth } from "../../modules/bluetooth";
 import { Temperature } from "../../modules/temperature";
+import { HomeAssistant } from "../../modules/homeassistant";
+import { execApp } from "../../modules/apps";
 
 import GObject from "ags/gobject";
 import AstalBluetooth from "gi://AstalBluetooth";
@@ -16,61 +15,86 @@ import AstalWp from "gi://AstalWp";
 
 
 export const Status = () =>
-  <Gtk.Button class={createBinding(Windows.getDefault(), "openWindows").as((openWins) =>
-      openWins.includes("control-center") ? 
-          "open status"
-      : "status"
-    )} onClicked={() => Windows.getDefault().toggle("control-center")}>
-
-      <Gtk.Box>
-        <Gtk.Box class={"volume-indicators"} spacing={5}>
-          <BatteryStatus
-            visible={Battery.getDefault().bindHasBattery()}
-            class="battery"
-            icon={Battery.getDefault().bindIcon()}
-            percentage={Battery.getDefault().bindPercentage()}
-          ></BatteryStatus>
-          <VolumeStatus
-            class="sink"
-            endpoint={Wireplumber.getDefault().getDefaultSink()}
-            icon={createBinding(
-              Wireplumber.getDefault().getDefaultSink(),
-              "volumeIcon"
-            ).as((icon) =>
-              !Wireplumber.getDefault().isMutedSink() &&
-              Wireplumber.getDefault().getSinkVolume() > 0
-                ? icon
-                : "audio-volume-muted-symbolic"
+  <Gtk.Box class={"status"} valign={Gtk.Align.CENTER}>
+    <Gtk.Box class={"volume-indicators"} spacing={4} valign={Gtk.Align.CENTER}>
+      <BatteryStatus
+        visible={Battery.getDefault().bindHasBattery()}
+        class="battery"
+        icon={Battery.getDefault().bindIcon()}
+        percentage={Battery.getDefault().bindPercentage()}
+      />
+      <VolumeButton
+        endpoint={Wireplumber.getDefault().getDefaultSink()}
+      />
+      <Gtk.Button class={"status-button temperature"}
+        onClicked={() => execApp("coolercontrol")}>
+        <Gtk.Box spacing={2} valign={Gtk.Align.CENTER}>
+          <Gtk.Image iconName={"madness-cpu-symbolic"} pixelSize={24} />
+          <Gtk.Label
+            valign={Gtk.Align.CENTER}
+            class={"temp"}
+            label={createBinding(Temperature.getDefault(), "temperature").as(
+              (temp) => `${temp}°`
             )}
           />
-
-          <TemperatureStatus />
         </Gtk.Box>
-        <Gtk.Revealer revealChild={createBinding(Recording.getDefault(), "recording")}
-          transitionDuration={500} transitionType={Gtk.RevealerTransitionType.SLIDE_LEFT}>
-
-            <Gtk.Box>
-                <Gtk.Image class={"recording state"} iconName={"media-record-symbolic"}
-                  css={"margin-right: 6px;"}
-                />
-                <Gtk.Label label={createBinding(Recording.getDefault(), "recordingTime")}
-                  class={"rec-time"}
-                />
-            </Gtk.Box>
-        </Gtk.Revealer>
-        <StatusIcons />
+      </Gtk.Button>
     </Gtk.Box>
-</Gtk.Button> as Gtk.Button;
 
-function VolumeStatus(props: {
-  class?: string;
+    <Gtk.Revealer revealChild={createBinding(Recording.getDefault(), "recording")}
+      transitionDuration={500} transitionType={Gtk.RevealerTransitionType.SLIDE_LEFT}>
+      <Gtk.Box>
+        <Gtk.Image class={"recording state"} iconName={"madness-record-circle-symbolic"}
+          pixelSize={24} css={"margin-right: 6px;"}
+        />
+        <Gtk.Label label={createBinding(Recording.getDefault(), "recordingTime")}
+          class={"rec-time"}
+        />
+      </Gtk.Box>
+    </Gtk.Revealer>
+
+    <Gtk.Box class={"status-icons"} spacing={4} valign={Gtk.Align.CENTER}>
+      <AmplifierButton />
+
+      <Gtk.Button class={"status-button bluetooth"}
+        visible={createBinding(Bluetooth.getDefault(), "adapter").as(Boolean)}
+        onClicked={() => execApp("blueberry")}>
+        <Gtk.Image
+          iconName={"madness-bluetooth-2-symbolic"}
+          pixelSize={24}
+          css={createBinding(AstalBluetooth.get_default(), "isPowered").as(
+            (powered) => powered ? "" : "opacity: 0.4;"
+          )}
+        />
+      </Gtk.Button>
+
+      <Gtk.Box class={"network"}
+        visible={createBinding(AstalNetwork.get_default(), "primary").as(
+          (primary) => primary !== AstalNetwork.Primary.UNKNOWN
+        )}
+      >
+        <With value={createBinding(AstalNetwork.get_default(), "primary")}>
+          {(primary: AstalNetwork.Primary) => {
+            switch (primary) {
+              case AstalNetwork.Primary.WIRED:
+                return <Gtk.Image iconName={"madness-globe-symbolic"} pixelSize={24} />;
+              case AstalNetwork.Primary.WIFI:
+                return <Gtk.Image iconName={"madness-wifi-symbolic"} pixelSize={24} />;
+              default:
+                return <Gtk.Image iconName={"madness-wifi-symbolic"} pixelSize={24} css={"opacity: 0.4;"} />;
+            }
+          }}
+        </With>
+      </Gtk.Box>
+    </Gtk.Box>
+  </Gtk.Box> as Gtk.Box;
+
+function VolumeButton(props: {
   endpoint: AstalWp.Endpoint;
-  icon?: string | Accessor<string>;
 }) {
   return (
-    <Gtk.Box
-      spacing={2}
-      class={props.class}
+    <Gtk.Button class={"status-button sink"}
+      onClicked={() => execApp("pavucontrol")}
       $={(self) => {
         const conns: Map<GObject.Object, number> = new Map();
         const controllerScroll = Gtk.EventControllerScroll.new(
@@ -81,7 +105,6 @@ function VolumeStatus(props: {
         conns.set(
           controllerScroll,
           controllerScroll.connect("scroll", (_, _dx, dy) => {
-            console.log`Scrolled! dx: ${_dx}; dy: ${dy}`;
             dy > 0
               ? Wireplumber.getDefault().decreaseEndpointVolume(
                   props.endpoint,
@@ -91,10 +114,11 @@ function VolumeStatus(props: {
                   props.endpoint,
                   5
                 );
-
             return true;
           })
         );
+
+        self.add_controller(controllerScroll);
 
         conns.set(
           self,
@@ -104,15 +128,25 @@ function VolumeStatus(props: {
         );
       }}
     >
-      {props.icon && <Gtk.Image iconName={props.icon} />}
-      <Gtk.Label
-        class={"volume"}
-        label={createBinding(props.endpoint, "volume").as(
-          (vol) => `${Math.floor(vol * 100)}%`
-        )}
-      />
-    </Gtk.Box>
-  ) as Gtk.Box;
+      <Gtk.Box spacing={2} valign={Gtk.Align.CENTER}>
+        <Gtk.Image
+          pixelSize={24}
+          iconName={createBinding(props.endpoint, "volume").as((vol) =>
+            vol === 0 || Wireplumber.getDefault().isMutedSink()
+              ? "madness-volume-slash-symbolic"
+              : "madness-volume-high-symbolic"
+          )}
+        />
+        <Gtk.Label
+          valign={Gtk.Align.CENTER}
+          class={"volume"}
+          label={createBinding(props.endpoint, "volume").as(
+            (vol) => `${Math.floor(vol * 100)}%`
+          )}
+        />
+      </Gtk.Box>
+    </Gtk.Button>
+  ) as Gtk.Button;
 }
 
 function BatteryStatus(props: {
@@ -122,93 +156,25 @@ function BatteryStatus(props: {
   icon?: string | Accessor<string>;
 }) {
   return (
-    <Gtk.Box visible={props.visible} spacing={2} class={props.class}>
-      {props.icon && <Gtk.Image iconName={props.icon} />}
-      <Gtk.Label class={"level"} label={props.percentage} />
+    <Gtk.Box visible={props.visible} spacing={2} class={props.class} valign={Gtk.Align.CENTER}>
+      {props.icon && <Gtk.Image iconName={props.icon} pixelSize={24} />}
+      <Gtk.Label valign={Gtk.Align.CENTER} class={"level"} label={props.percentage} />
     </Gtk.Box>
   ) as Gtk.Box;
 }
 
-function TemperatureStatus() {
+function AmplifierButton() {
   return (
-    <Gtk.Box spacing={2} class={"temperature"}>
-      <Gtk.Image iconName={"xsi-temperature-symbolic"} />
-      <Gtk.Label
-        class={"temp"}
-        label={createBinding(Temperature.getDefault(), "temperature").as(
-          (temp) => `${temp}°`
-        )}
-      />
-    </Gtk.Box>
-  ) as Gtk.Box;
-}
-
-function StatusIcons() {
-  return (
-    <Gtk.Box class={"status-icons"} spacing={8}>
+    <Gtk.Button class={"status-button amplifier"}
+      tooltipText={"Toggle amplifier"}
+      onClicked={() => HomeAssistant.getDefault().toggle()}>
       <Gtk.Image
-        iconName={createComputed(
-          [
-            createBinding(AstalBluetooth.get_default(), "isPowered"),
-            createBinding(AstalBluetooth.get_default(), "isConnected"),
-          ],
-          (powered, connected) => {
-            return powered
-              ? connected
-                ? "bluetooth-active-symbolic"
-                : "bluetooth-symbolic"
-              : "bluetooth-disabled-symbolic";
-          }
+        iconName={"madness-speaker-symbolic"}
+        pixelSize={24}
+        css={createBinding(HomeAssistant.getDefault(), "amplifierOn").as(
+          (on) => on ? "" : "opacity: 0.4;"
         )}
-        class={"bluetooth state"}
-        visible={createBinding(Bluetooth.getDefault(), "adapter").as(Boolean)}
       />
-
-      <Gtk.Box
-        visible={createBinding(AstalNetwork.get_default(), "primary").as(
-          (primary) => primary !== AstalNetwork.Primary.UNKNOWN
-        )}
-      >
-        <With value={createBinding(AstalNetwork.get_default(), "primary")}>
-          {(primary: AstalNetwork.Primary) => {
-            let device: AstalNetwork.Wifi | AstalNetwork.Wired;
-            switch (primary) {
-              case AstalNetwork.Primary.WIRED:
-                device = AstalNetwork.get_default().wired;
-                break;
-              case AstalNetwork.Primary.WIFI:
-                device = AstalNetwork.get_default().wifi;
-                break;
-
-              default:
-                return <Gtk.Image iconName={"network-no-route-symbolic"} />;
-            }
-
-            return <Gtk.Image iconName={createBinding(device, "iconName")} />;
-          }}
-        </With>
-      </Gtk.Box>
-
-      <Gtk.Box>
-        <Gtk.Image
-          class={"bell state"}
-          iconName={createBinding(
-            Notifications.getDefault().getNotifd(),
-            "dontDisturb"
-          ).as((dnd) =>
-            dnd
-              ? "minus-circle-filled-symbolic"
-              : "preferences-system-notifications-symbolic"
-          )}
-        />
-        <Gtk.Image
-          iconName={"circle-filled-symbolic"}
-          class={"notification-count"}
-          visible={variableToBoolean(
-            createBinding(Notifications.getDefault(), "history")
-          )}
-        />
-      </Gtk.Box>
-    </Gtk.Box>
-  );
+    </Gtk.Button>
+  ) as Gtk.Button;
 }

@@ -27,14 +27,16 @@ const generalConfigDefaults = {
     },
     misc: {
         play_bell_on_volume_change: true
+    },
+    homeassistant: {
+        url: "http://192.168.8.40:8123",
+        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlMzI2NzJjYTAxYTE0NzJmODkyNzQxOTJiYTVlZWZlMCIsImlhdCI6MTc3MjI3OTgxOCwiZXhwIjoyMDg3NjM5ODE4fQ.yiMnvrp5Y8eXLYcpW-meXpxgB2CkbX0Myf5fvcDCDT0",
+        amplifier_entity: "media_player.amplifier"
     }
 };
 
 const userDataDefaults = {
     bluetooth_default_adapter: undefined as unknown as string,
-    control_center: {
-        default_backlight: undefined as unknown as string
-    },
     night_light: {
         temperature: 6000,
         gamma: 100,

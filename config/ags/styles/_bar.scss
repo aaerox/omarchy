@@ -31,7 +31,7 @@ $color-hover: colors.$bg-primary;
     border-radius: $radius;
     padding: 0 $padding;
 
-    & > box:not(.workspaces-row):not(.tray):not(.focused-client):not(.media), 
+    & > box:not(.workspaces-row):not(.tray):not(.focused-client):not(.media):not(.status),
     & > button {
       @include button-reactivity;
 
@@ -42,6 +42,18 @@ $color-hover: colors.$bg-primary;
       &:hover {
         background: $color-hover;
       }
+    }
+  }
+
+  // Widgets-right: separate islands for tray and status
+  & > .bar-centerbox > .widgets-right {
+    background: none;
+    spacing: 4px;
+
+    & > .tray {
+      background: rgba(colors.$bg-translucent, .6);
+      border-radius: $radius;
+      padding: 0 10px;
     }
   }
 
@@ -173,39 +185,50 @@ $color-hover: colors.$bg-primary;
   }
 
   .tray {
-    padding: 0 6px;
+    padding: 0 10px;
 
     & .item {
       all: unset;
+      cursor: pointer;
+    }
+
+    & image {
+      -gtk-icon-style: symbolic;
     }
   }
 
   .status {
     @include mixins.reset-props;
+    background: rgba(colors.$bg-translucent, .6);
+    border-radius: $radius;
+    padding: 2px 10px;
 
-    &.open {
-      background: colors.$bg-primary;
-    }
+    & .status-button {
+      @include button-reactivity;
+      border-radius: 8px;
+      cursor: pointer;
+      padding: 2px 6px;
+      transition: 120ms linear;
 
-    & image {
-      -gtk-icon-size: 14px;
+      &:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      & image {
+        margin-bottom: 4px;
+      }
+
+      & label {
+        font-size: 12px;
+      }
     }
 
     & revealer > box {
       background: rgba($color: colors.$bg-tertiary, $alpha: .7);
-      border-radius: 12px; 
-      margin: 4px 0; 
+      border-radius: 12px;
+      margin: 4px 0;
       margin-left: 5px;
       padding: 2px 6px;
-    }
-
-    & .status-icons {
-      padding-left: 4px;
-
-      & image.notification-count {
-        -gtk-icon-size: 6px;
-        margin-top: -14px;
-      }
     }
   }
 
@@ -213,7 +236,6 @@ $color-hover: colors.$bg-primary;
     min-width: 18px;
     & image {
       transition: 120ms linear;
-      -gtk-icon-size: 14px;
     }
 
     &.open {

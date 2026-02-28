@@ -47,7 +47,7 @@ export const Tray = () => {
                                   }
                               }))
                           }}>
-                            <Gtk.Image gicon={createBinding(item, "gicon")} pixelSize={16} />
+                            <Gtk.Image gicon={createBinding(item, "gicon")} pixelSize={20} />
                             {popover}
                         </Gtk.Box>;
                     }}

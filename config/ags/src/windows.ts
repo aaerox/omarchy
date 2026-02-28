@@ -4,7 +4,6 @@ import { variableToBoolean } from "./modules/utils";
 import { createRoot, getScope, onCleanup } from "ags";
 import { exec } from "ags/process";
 import { Bar } from "./bar/Bar";
-// import { ControlCenter } from "./window/control-center";
 
 import AstalHyprland from "gi://AstalHyprland";
 import GLib from "gi://GLib";
@@ -46,7 +45,6 @@ export class Windows extends GObject.Object {
     #pendingReopen: Array<string> | null = null;
     #windows: Record<string, WindowData> = {
         "bar": { create: this.createWindowForMonitors(Bar) },
-        // "control-center": { create: this.createWindowForFocusedMonitor(ControlCenter), },
     };
 
     @signal(String) windowOpen(_name: string) {}
