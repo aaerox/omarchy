@@ -8,17 +8,17 @@ import { Bar } from "./bar/Bar";
 import AstalHyprland from "gi://AstalHyprland";
 import GLib from "gi://GLib";
 
-function getMirroredMonitorNames(): Set<string> {
+function getActiveMonitorNames(): Set<string> | null {
     try {
         const json = exec("hyprctl monitors all -j");
         const monitors: Array<{ name: string; mirrorOf: string }> = JSON.parse(json);
         return new Set(
             monitors
-                .filter(m => m.mirrorOf !== "" && m.mirrorOf !== "none")
+                .filter(m => m.mirrorOf === "" || m.mirrorOf === "none")
                 .map(m => m.name)
         );
     } catch (_) {
-        return new Set();
+        return null;
     }
 }
 
@@ -67,9 +67,9 @@ export class Windows extends GObject.Object {
 
             const hyprConnections = [
                 AstalHyprland.get_default().connect("monitor-added", () =>
-                    this.debouncedReopen(false)),
-                AstalHyprland.get_default().connect("monitor-removed", () =>
-                    this.debouncedReopen(true))
+                    this.debouncedReopen()),
+                AstalHyprland.get_default().connect("monitor-removed", (_: any, id: number) =>
+                    this.debouncedReopen(id))
             ];
 
             onCleanup(() => {
@@ -173,8 +173,8 @@ export class Windows extends GObject.Object {
             if(monitors.length < 1)
                 throw new Error("Couldn't create window for monitors");
 
-            const mirrored = getMirroredMonitorNames();
-            return monitors.filter(mon => !mirrored.has(mon.name)).map(mon => {
+            const active = getActiveMonitorNames();
+            return monitors.filter(mon => mon && (!active || active.has(mon.name))).map(mon => {
             return createRoot(() => {
                 const scope = getScope();
                 const instance = create(mon.id) as Astal.Window;
@@ -217,7 +217,7 @@ export class Windows extends GObject.Object {
     }
 
     public getFocusedMonitorId(): (number|null) {
-        return AstalHyprland.get_default().get_monitors().filter(mon => mon.focused)?.[0]?.id ?? null;
+        return AstalHyprland.get_default().get_monitors().filter(mon => mon?.focused)?.[0]?.id ?? null;
     }
 
     public isOpen(name: string): boolean {
@@ -277,12 +277,31 @@ export class Windows extends GObject.Object {
         this.openWindows.forEach(name => this.close(name));
     }
 
-    private debouncedReopen(closeImmediately: boolean = false): void {
+    private closeWindowsForMonitor(monitorId: number): void {
+        for (const name of this.openWindows) {
+            const window = this.#windows[name];
+            if (!window?.instance || !Array.isArray(window.instance)) continue;
+
+            const remaining = window.instance.filter(inst => {
+                const win = inst.instance as Astal.Window;
+                if (win?.monitor === monitorId) {
+                    this._disconnectAllFromInstance(win, inst.connections);
+                    win.close();
+                    return false;
+                }
+                return true;
+            });
+
+            window.instance = remaining;
+        }
+    }
+
+    private debouncedReopen(removedMonitorId?: number): void {
         if (this.openWindows.length > 0)
             this.#pendingReopen = [...this.openWindows];
 
-        if (closeImmediately)
-            this.closeAll();
+        if (removedMonitorId != null)
+            this.closeWindowsForMonitor(removedMonitorId);
 
         if (this.#reopenTimeout)
             GLib.source_remove(this.#reopenTimeout);
