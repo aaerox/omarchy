@@ -11,10 +11,14 @@ import GLib from "gi://GLib";
 function getActiveMonitorNames(): Set<string> | null {
     try {
         const json = exec("hyprctl monitors all -j");
-        const monitors: Array<{ name: string; mirrorOf: string }> = JSON.parse(json);
+        const monitors: Array<{ name: string; mirrorOf: string; description: string }> = JSON.parse(json);
         return new Set(
             monitors
-                .filter(m => m.mirrorOf === "" || m.mirrorOf === "none")
+                // Skip mirrors, and skip the Anthem MRX 540 AV receiver: it's an
+                // audio-only output (kept alive for 7.1 surround) with no real
+                // display, so it must not get its own bar.
+                .filter(m => (m.mirrorOf === "" || m.mirrorOf === "none")
+                    && !/MRX 540/i.test(m.description ?? ""))
                 .map(m => m.name)
         );
     } catch (_) {
