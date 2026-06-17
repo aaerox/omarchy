@@ -1,0 +1,7 @@
+#!/bin/bash
+# Restart AGS bar
+
+pkill -f 'ags run' 2>/dev/null
+pkill -f '/run/user/.*/ags.js' 2>/dev/null
+sleep 1
+uwsm-app -- ags run -d ~/.local/share/omarchy/config/ags --gtk 4 &

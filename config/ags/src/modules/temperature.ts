@@ -1,8 +1,36 @@
 import GLib from "gi://GLib";
 import GObject from "ags/gobject";
 
-const SENSOR_PATH = "/sys/class/hwmon/hwmon2/temp4_input";
+const SENSOR_LABEL = "T_Sensor";
 const POLL_INTERVAL_MS = 5000;
+
+function findSensorPath(): string | null {
+  const hwmonBase = "/sys/class/hwmon";
+  try {
+    const dir = GLib.Dir.open(hwmonBase, 0);
+    let name: string | null;
+    while ((name = dir.read_name()) !== null) {
+      const hwmonDir = `${hwmonBase}/${name}`;
+      for (let i = 1; i <= 16; i++) {
+        const labelPath = `${hwmonDir}/temp${i}_label`;
+        try {
+          const [lok, lcontents] = GLib.file_get_contents(labelPath);
+          if (lok && lcontents) {
+            const label = new TextDecoder().decode(lcontents).trim();
+            if (label === SENSOR_LABEL) {
+              return `${hwmonDir}/temp${i}_input`;
+            }
+          }
+        } catch {
+          continue;
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Failed to enumerate hwmon devices:", e);
+  }
+  return null;
+}
 
 export class Temperature extends GObject.Object {
   static {
@@ -28,6 +56,7 @@ export class Temperature extends GObject.Object {
 
   #temperature: number = 0;
   #timeoutId: number | null = null;
+  #sensorPath: string | null = null;
 
   get temperature(): number {
     return this.#temperature;
@@ -42,6 +71,10 @@ export class Temperature extends GObject.Object {
 
   constructor() {
     super();
+    this.#sensorPath = findSensorPath();
+    if (!this.#sensorPath) {
+      console.error(`Temperature sensor with label "${SENSOR_LABEL}" not found`);
+    }
     this.#poll();
     this.#startPolling();
   }
@@ -55,7 +88,8 @@ export class Temperature extends GObject.Object {
 
   #poll(): void {
     try {
-      const [ok, contents] = GLib.file_get_contents(SENSOR_PATH);
+      if (!this.#sensorPath) return;
+      const [ok, contents] = GLib.file_get_contents(this.#sensorPath);
       if (ok && contents) {
         const millidegrees = parseInt(
           new TextDecoder().decode(contents).trim(),

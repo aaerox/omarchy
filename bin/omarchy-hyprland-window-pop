@@ -22,7 +22,7 @@ else
     "dispatch tagwindow +pop address:$addr;"
 
   # Plex-specific size override after tagging
-  if [[ "$cls" == "Plex" ]]; then
+  if [[ "$cls" == "tv.plex.plex-bin" ]]; then
     hyprctl -q dispatch resizeactive exact 960 540
   fi
 fi
