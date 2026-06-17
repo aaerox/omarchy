@@ -78,9 +78,10 @@ export class OmarchyShell extends Astal.Application {
       console.log("Omarchy AGS: Initializing");
       this.connect("shutdown", () => dispose());
 
-      // Initialize Windows system and open bar
+      // Initialize Windows system. Open only the hot-edge detector; the bar
+      // itself is opened on demand when the pointer hits the top edge.
       const windows = Windows.getDefault();
-      windows.open("bar");
+      windows.open("hot-edge");
     });
   }
 

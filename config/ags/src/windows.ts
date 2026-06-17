@@ -4,6 +4,7 @@ import { variableToBoolean } from "./modules/utils";
 import { createRoot, getScope, onCleanup } from "ags";
 import { exec } from "ags/process";
 import { Bar } from "./bar/Bar";
+import { HotEdge } from "./bar/HotEdge";
 
 import AstalHyprland from "gi://AstalHyprland";
 import GLib from "gi://GLib";
@@ -49,6 +50,7 @@ export class Windows extends GObject.Object {
     #pendingReopen: Array<string> | null = null;
     #windows: Record<string, WindowData> = {
         "bar": { create: this.createWindowForMonitors(Bar) },
+        "hot-edge": { create: this.createWindowForMonitors(HotEdge) },
     };
 
     @signal(String) windowOpen(_name: string) {}

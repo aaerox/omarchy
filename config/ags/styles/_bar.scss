@@ -18,12 +18,10 @@ $color-hover: colors.$bg-primary;
   padding: 6px;
   padding-bottom: 6px;
 
-  // Frosted-glass backing for the auto-hiding bar. Alpha is kept ~0.5 so the
-  // Hyprland layer blur (layerrule "blur on, match:namespace top-bar") shows
-  // through -- it must stay ABOVE the layer's ignore_alpha (0.3) or the blur is
-  // discarded. The gradient + inner highlight give the glassy sheen; the real
-  // blur comes from the compositor (GTK4 CSS has no backdrop-filter).
-  background-color: rgba(colors.$bg-primary, .5);
+  // Backing panel for the auto-hiding bar. Semi-transparent so the Hyprland
+  // layer blur (layerrule "blur on, match:namespace top-bar") shows through as a
+  // frosted backdrop; alpha must stay above the layer's ignore_alpha.
+  background-color: rgba(colors.$bg-primary, .4);
   background-image: linear-gradient(to bottom,
     rgba(255, 255, 255, .06), rgba(255, 255, 255, 0));
   border-bottom: 1px solid rgba(255, 255, 255, .10);
