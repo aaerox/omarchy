@@ -1,7 +1,15 @@
 #!/bin/bash
-# Restart AGS bar
+# Restart AGS bar.
+#
+# Launched as a uwsm systemd *service* with Restart=on-failure so a libwayland
+# protocol crash during a monitor hotplug (e.g. toggling the projector) can no
+# longer leave the desktop permanently bar-less -- systemd brings it back in a
+# couple of seconds. Stop any existing ags units cleanly first so that auto-
+# restart policy can't race this relaunch into a duplicate bar.
 
+units=$(systemctl --user list-units --all --plain --no-legend 'app-*ags*' 2>/dev/null | awk '{print $1}')
+[ -n "$units" ] && systemctl --user stop $units 2>/dev/null
 pkill -f 'ags run' 2>/dev/null
 pkill -f '/run/user/.*/ags.js' 2>/dev/null
 sleep 1
-uwsm-app -- ags run -d ~/.local/share/omarchy/config/ags --gtk 4 &
+uwsm-app -t service -p Restart=on-failure -p RestartSec=2 -- ags run -d ~/.local/share/omarchy/config/ags --gtk 4 &

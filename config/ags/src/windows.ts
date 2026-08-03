@@ -1,4 +1,4 @@
-import { Astal } from "ags/gtk4";
+import { Astal, Gdk } from "ags/gtk4";
 import GObject, { getter, register, signal } from "ags/gobject";
 import { variableToBoolean } from "./modules/utils";
 import { createRoot, getScope, onCleanup } from "ags";
@@ -25,6 +25,22 @@ function getActiveMonitorNames(): Set<string> | null {
     } catch (_) {
         return null;
     }
+}
+
+
+// Enumerate GDK monitors. The Gio.ListModel has no JS iterator helper, so walk
+// it by index until get_item returns null.
+function getGdkMonitors(): Array<Gdk.Monitor> {
+    const display = Gdk.Display.get_default();
+    if (!display) return [];
+    const model = display.get_monitors();
+    const out: Array<Gdk.Monitor> = [];
+    for (let i = 0; ; i++) {
+        const m = model.get_item(i) as Gdk.Monitor | null;
+        if (!m) break;
+        out.push(m);
+    }
+    return out;
 }
 
 
@@ -172,31 +188,50 @@ export class Windows extends GObject.Object {
         return this.instance;
     }
 
-    public createWindowForMonitors(create: (mon: number) => GObject.Object|Astal.Window): (() => Array<Astal.Window>) {
+    public createWindowForMonitors(create: (mon: Gdk.Monitor) => GObject.Object|Astal.Window): (() => Array<Astal.Window>) {
         return () => {
-            const monitors = AstalHyprland.get_default().get_monitors();
+            const hyprMonitors = AstalHyprland.get_default().get_monitors();
 
-            if(monitors.length < 1)
+            if(hyprMonitors.length < 1)
                 throw new Error("Couldn't create window for monitors");
 
+            // Resolve each Hyprland monitor to its GDK monitor by connector name
+            // and target the window via the `gdkmonitor` prop. The integer
+            // `monitor` prop is a GDK monitor *index*, but GDK orders monitors
+            // differently from Hyprland and reshuffles that order on every
+            // hotplug -- so passing a Hyprland id put the bar on the wrong
+            // output (e.g. the audio-only DP-1) after toggling the projector.
+            const gdkByConnector = new Map<string, Gdk.Monitor>();
+            for (const gm of getGdkMonitors())
+                gdkByConnector.set(gm.connector ?? "", gm);
+
             const active = getActiveMonitorNames();
-            return monitors.filter(mon => mon && (!active || active.has(mon.name))).map(mon => {
-            return createRoot(() => {
-                const scope = getScope();
-                const instance = create(mon.id) as Astal.Window;
-                const connection: number = instance.connect("close-request", () =>
-                    scope.dispose());
+            return hyprMonitors
+                .filter(mon => mon && (!active || active.has(mon.name)))
+                .map(mon => {
+                    const gm = gdkByConnector.get(mon.name);
+                    if (!gm) {
+                        console.error(`Windows: no GDK monitor for ${mon.name}; skipping`);
+                        return null;
+                    }
+                    return createRoot(() => {
+                        const scope = getScope();
+                        const instance = create(gm) as Astal.Window;
+                        const connection: number = instance.connect("close-request", () =>
+                            scope.dispose());
 
-                this.#scope.onMount(scope.dispose);
+                        this.#scope.onMount(scope.dispose);
 
-                scope.onCleanup(() =>
-                    GObject.signal_handler_is_connected(instance, connection) &&
-                        instance.disconnect(connection)
-                );
+                        scope.onCleanup(() =>
+                            GObject.signal_handler_is_connected(instance, connection) &&
+                                instance.disconnect(connection)
+                        );
 
-                return instance;
-            })
-        })}
+                        return instance;
+                    });
+                })
+                .filter((w): w is Astal.Window => w != null);
+        }
     }
 
     public createWindowForFocusedMonitor(create: (mon: number) => GObject.Object|Astal.Window): (() => Astal.Window) {
@@ -279,6 +314,24 @@ export class Windows extends GObject.Object {
         this.isOpen(name) ? this.close(name) : this.open(name);
     }
 
+    // Show/hide an already-open window's surfaces WITHOUT destroying them. The
+    // auto-hiding bar uses this instead of open/close-per-hover: creating and
+    // destroying a layer-shell window on every hover leaked surfaces (the GTK
+    // destroy is blocked when it lands during GC -- "Attempting to run a JS
+    // callback during garbage collection"), and each leaked 66px bar kept a
+    // full-width input region at the top that captured the pointer. A single
+    // persistent window toggled via hide()/show() never leaks.
+    public setVisible(name: string, visible: boolean): void {
+        const window = this.#windows[name];
+        if(!window?.instance) return;
+
+        const instances = Array.isArray(window.instance) ? window.instance : [window.instance];
+        instances.forEach(inst => {
+            if(!inst.instance) return;
+            visible ? inst.instance.show() : inst.instance.hide();
+        });
+    }
+
     public closeAll(): void {
         this.openWindows.forEach(name => this.close(name));
     }
@@ -319,6 +372,10 @@ export class Windows extends GObject.Object {
             if (AstalHyprland.get_default().get_monitors().length > 0) {
                 this.closeAll();
                 wins.forEach(name => this.open(name));
+                // The bar is persistent-but-hidden; after a hotplug reopen it
+                // would come back shown, so re-hide it (the hot-edge reveals it
+                // on hover, as at startup).
+                this.setVisible("bar", false);
             }
             return GLib.SOURCE_REMOVE;
         });

@@ -1,0 +1,37 @@
+-- See https://wiki.hypr.land/Configuring/Basics/Monitors/
+-- List current monitors and resolutions possible: hyprctl monitors all
+
+-- Optimized for retina-class 2x displays, like 13" 2.8K, 27" 5K, 32" 6K.
+hl.env("GDK_SCALE", "1.5")
+
+-- Main display
+hl.monitor({ output = "DP-2", mode = "5120x2160@165", position = "0x0", scale = 1.6 })
+hl.monitor({ output = "HDMI-A-1", disabled = true })
+
+-- Anthem MRX 540 AV receiver (DP->HDMI adapter) - audio only
+-- Kept as an INDEPENDENT output (not a mirror) purely to hold the HDMI link
+-- alive for 7.1 surround audio. Positioned at x=5120 -- a deliberate gap past
+-- DP-2's logical width (3200px @ scale 1.6) so the cursor can't wander onto it.
+--
+-- NOTE: do NOT mirror DP-2. Mirroring forces DP-1's atomic commit to sync with
+-- DP-2, and at 165Hz DP-2 always has a page-flip in flight -> DP-1 modeset fails
+-- with "Cannot commit when a page-flip is awaiting" and never comes up. (Mirror
+-- worked when DP-2 was 2560x1440@144; the 165Hz primary is what breaks it.)
+-- Also: keep this at a standard CEA mode (1080p60). The active DP->HDMI converter
+-- can't hold PLL lock at 640x480, which makes the connector flap ~1x/min.
+hl.monitor({ output = "DP-1", mode = "1920x1080@60", position = "5120x0", scale = 1 })
+
+-- Keep the audio-only DP-1 output (Anthem amplifier) from grabbing a real
+-- workspace: give it its own named "audio" workspace as default so Hyprland
+-- won't hand numbered workspace 1 to DP-1 (lowest monitor ID). The numbered
+-- workspaces 1-10 are deliberately left UNPINNED so SUPER+[SHIFT+]number opens
+-- / moves windows on whichever monitor is focused -- including the projector
+-- (HDMI-A-1) when it's on. No catch-all monitor windowrule: that forced every
+-- window onto DP-2 and made the projector impossible to put windows on.
+hl.workspace_rule({ workspace = "name:audio", monitor = "DP-1", default = true })
+
+-- No app monitor-pinning. New windows open on the focused monitor (Hyprland
+-- default). Steam is intentionally left UNpinned (per request) -- note it
+-- restores its own saved window position, so if it ever reopens on the invisible
+-- audio DP-1 again, the fix is to drag it back to DP-2 once (Steam re-saves the
+-- new position) or re-add: o.window("^(steam)$", { monitor = "DP-2" })

@@ -1,11 +1,12 @@
 import { Windows } from "../windows";
 import GLib from "gi://GLib";
 
-// Shared show/hide coordination for the auto-hiding bar. The bar is a normal
-// fixed-size window that is fully opened/closed (not resized in place) -- this
-// sidesteps gtk4-layer-shell's inability to shrink a grown surface. The 1px
-// HotEdge window opens it on hover; the bar closes itself on pointer-leave with
-// a short grace so moving edge -> bar doesn't flicker.
+// Shared show/hide coordination for the auto-hiding bar. The bar is a single
+// persistent fixed-size window that is hidden/shown (NOT created/destroyed) --
+// create/destroy-per-hover leaked layer surfaces whose 66px input regions
+// captured the pointer (see Windows.setVisible). The 1px HotEdge window shows
+// it on hover; the bar hides itself on pointer-leave with a short grace so
+// moving edge -> bar doesn't flicker.
 
 const GRACE_MS = 200;
 let closeTimer = 0;
@@ -16,8 +17,7 @@ function cancelClose(): void {
 
 export function showBar(): void {
     cancelClose();
-    if (!Windows.getDefault().isOpen("bar"))
-        Windows.getDefault().open("bar");
+    Windows.getDefault().setVisible("bar", true);
 }
 
 export function cancelHideBar(): void {
@@ -27,7 +27,7 @@ export function cancelHideBar(): void {
 export function scheduleHideBar(): void {
     cancelClose();
     closeTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, GRACE_MS, () => {
-        Windows.getDefault().close("bar");
+        Windows.getDefault().setVisible("bar", false);
         closeTimer = 0;
         return GLib.SOURCE_REMOVE;
     });

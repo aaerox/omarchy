@@ -1,0 +1,7 @@
+-- -- Float Steam
+-- o.window("steam", { float = true })
+-- o.window({ class = "steam", title = "Steam" }, { center = true })
+-- o.window("steam", { opacity = "1 1" })
+-- o.window({ class = "steam", title = "Steam" }, { size = { 1100, 700 } })
+-- o.window({ class = "steam", title = "Friends List" }, { size = { 460, 800 } })
+-- o.window("steam", { idle_inhibit = "fullscreen" })

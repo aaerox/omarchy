@@ -146,7 +146,7 @@ show_style_menu() {
   *Theme*) show_theme_menu ;;
   *Font*) show_font_menu ;;
   *Background*) omarchy-theme-bg-next ;;
-  *Hyprland*) open_in_editor ~/.config/hypr/looknfeel.conf ;;
+  *Hyprland*) open_in_editor ~/.config/hypr/looknfeel.lua ;;
   *Screensaver*) open_in_editor ~/.config/omarchy/branding/screensaver.txt ;;
   *About*) open_in_editor ~/.config/omarchy/branding/about.txt ;;
   *) show_main_menu ;;
@@ -173,8 +173,8 @@ show_font_menu() {
 
 show_setup_menu() {
   local options="  Audio\n  Wifi\n󰂯  Bluetooth\n󱐋  Power Profile\n󰍹  Monitors"
-  [ -f ~/.config/hypr/bindings.conf ] && options="$options\n  Keybindings"
-  [ -f ~/.config/hypr/input.conf ] && options="$options\n  Input"
+  [ -f ~/.config/hypr/bindings.lua ] && options="$options\n  Keybindings"
+  [ -f ~/.config/hypr/input.lua ] && options="$options\n  Input"
   options="$options\n  Defaults\n󰱔  DNS\n  Security\n  Config"
 
   case $(menu "Setup" "$options") in
@@ -188,9 +188,9 @@ show_setup_menu() {
     blueberry
     ;;
   *Power*) show_setup_power_menu ;;
-  *Monitors*) open_in_editor ~/.config/hypr/monitors.conf ;;
-  *Keybindings*) open_in_editor ~/.config/hypr/bindings.conf ;;
-  *Input*) open_in_editor ~/.config/hypr/input.conf ;;
+  *Monitors*) open_in_editor ~/.config/hypr/monitors.lua ;;
+  *Keybindings*) open_in_editor ~/.config/hypr/bindings.lua ;;
+  *Input*) open_in_editor ~/.config/hypr/input.lua ;;
   *Defaults*) open_in_editor ~/.config/uwsm/default ;;
   *DNS*) present_terminal omarchy-setup-dns ;;
   *Security*) show_setup_security_menu ;;
@@ -211,7 +211,7 @@ show_setup_power_menu() {
 
 show_setup_config_menu() {
   case $(menu "Setup" "  Hyprland\n  Hypridle\n  Hyprlock\n  Hyprsunset\n  Swayosd\n󰌧  Walker\n󰍜  Waybar\n󰞅  XCompose") in
-  *Hyprland*) open_in_editor ~/.config/hypr/hyprland.conf ;;
+  *Hyprland*) open_in_editor ~/.config/hypr/hyprland.lua ;;
   *Hypridle*) open_in_editor ~/.config/hypr/hypridle.conf && omarchy-restart-hypridle ;;
   *Hyprlock*) open_in_editor ~/.config/hypr/hyprlock.conf ;;
   *Hyprsunset*) open_in_editor ~/.config/hypr/hyprsunset.conf && omarchy-restart-hyprsunset ;;

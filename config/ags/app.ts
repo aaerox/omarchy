@@ -78,10 +78,15 @@ export class OmarchyShell extends Astal.Application {
       console.log("Omarchy AGS: Initializing");
       this.connect("shutdown", () => dispose());
 
-      // Initialize Windows system. Open only the hot-edge detector; the bar
-      // itself is opened on demand when the pointer hits the top edge.
+      // Initialize Windows system. The hot-edge detector is the hover target.
+      // The bar is created ONCE here and then kept hidden -- the hot-edge calls
+      // setVisible("bar", true) on hover and the bar hides itself on leave. It
+      // is never destroyed/recreated per hover (that leaked input-capturing
+      // surfaces at the top of the screen).
       const windows = Windows.getDefault();
       windows.open("hot-edge");
+      windows.open("bar");
+      windows.setVisible("bar", false);
     });
   }
 

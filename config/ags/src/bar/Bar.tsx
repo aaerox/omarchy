@@ -1,4 +1,4 @@
-import { Astal, Gtk } from "ags/gtk4";
+import { Astal, Gtk, Gdk } from "ags/gtk4";
 import { cancelHideBar, scheduleHideBar } from "./autohide";
 import { Tray } from "./widgets/Tray";
 import { Workspaces } from "./widgets/Workspaces";
@@ -8,7 +8,7 @@ import { Status } from "./widgets/Status";
 import { Media } from "./widgets/Media";
 
 
-export const Bar = (mon: number) => {
+export const Bar = (mon: Gdk.Monitor) => {
     const widgetSpacing = 4;
 
     // Auto-hide: the bar is opened on demand by the HotEdge window (pointer at the
@@ -22,7 +22,7 @@ export const Bar = (mon: number) => {
 
     return <Astal.Window namespace={"top-bar"} layer={Astal.Layer.TOP}
       anchor={Astal.WindowAnchor.TOP | Astal.WindowAnchor.LEFT | Astal.WindowAnchor.RIGHT}
-      exclusivity={Astal.Exclusivity.NORMAL} heightRequest={66} monitor={mon}
+      exclusivity={Astal.Exclusivity.NORMAL} heightRequest={66} gdkmonitor={mon}
       canFocus={false}
       $={(self) => self.add_controller(motion)}>
 
