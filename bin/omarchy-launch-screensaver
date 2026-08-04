@@ -15,16 +15,19 @@ fi
 
 focused=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true).name')
 
-for m in $(hyprctl monitors -j | jq -r '.[] | .name'); do
-  hyprctl dispatch focusmonitor $m
+screensaver_cmd="kitty --class=Screensaver \
+-o background=#000000 \
+-o cursor=#000000 \
+-o font_size=18.0 \
+-o background_opacity=1.0 \
+omarchy-cmd-screensaver"
 
-  hyprctl dispatch exec -- \
-    kitty --class=Screensaver \
-    -o background=#000000 \
-    -o cursor=#000000 \
-    -o font_size=18.0 \
-    -o background_opacity=1.0 \
-    omarchy-cmd-screensaver
+for m in $(hyprctl monitors -j | jq -r '.[] | .name'); do
+  hyprctl dispatch "hl.dsp.focus({ monitor = '$m' })"
+
+  # Lua long-bracket string: the command contains '#' and quotes we don't want
+  # Lua to interpret.
+  hyprctl dispatch "hl.dsp.exec_cmd([[$screensaver_cmd]])"
 done
 
-hyprctl dispatch focusmonitor $focused
+hyprctl dispatch "hl.dsp.focus({ monitor = '$focused' })"

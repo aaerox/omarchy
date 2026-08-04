@@ -3,9 +3,9 @@ import { Gtk } from "ags/gtk4";
 import { Separator } from "../../widget/Separator";
 import { getPlayerIconFromBusName, secureBaseBinding, variableToBoolean } from "../../modules/utils";
 import { default as Player } from "../../modules/media";
+import { dispatchLua, luaString } from "../../modules/hyprland";
 
 import AstalMpris from "gi://AstalMpris";
-import AstalHyprland from "gi://AstalHyprland";
 import Pango from "gi://Pango?version=1.0";
 
 
@@ -44,7 +44,7 @@ export const Media = () =>
             const busName = Player.getDefault().player?.busName ?? "";
             const playerName = busName.split(".").pop()?.toLowerCase() ?? "";
             if (playerName) {
-                AstalHyprland.get_default().dispatch("focuswindow", `class:${playerName}`);
+                dispatchLua(`hl.dsp.focus({ window = ${luaString(`class:${playerName}`)} })`);
             }
         }} />
         <Gtk.EventControllerMotion onEnter={(self) => {

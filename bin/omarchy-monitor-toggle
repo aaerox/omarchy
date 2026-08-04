@@ -29,13 +29,13 @@ if [ "$DISABLED" = "true" ]; then
     esac
 elif [ "$DPMS_STATUS" = "false" ]; then
     # Monitor is DPMS-off, wake it
-    hyprctl dispatch dpms on "$MONITOR"
+    hyprctl dispatch "hl.dsp.dpms({ state = 'on', monitor = '$MONITOR' })"
 else
     # Monitor is on, turn it off
     case "$MONITOR" in
         "DP-2")
             # Use DPMS to avoid modeset that disrupts audio monitor
-            hyprctl dispatch dpms off "$MONITOR"
+            hyprctl dispatch "hl.dsp.dpms({ state = 'off', monitor = '$MONITOR' })"
             ;;
         *)
             # Fully disable (removes from layout)

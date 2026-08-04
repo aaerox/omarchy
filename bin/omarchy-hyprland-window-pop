@@ -8,21 +8,34 @@ addr=$(echo "$active" | jq -r ".address")
 cls=$(echo "$active" | jq -r ".class")
 [ -z "$addr" ] && { echo "No active window"; exit 0; }
 
+# Hyprland's Lua config mode evaluates the dispatch payload as Lua, so these are
+# hl.dsp.* calls rather than the legacy "dispatch togglefloating address:0x..."
+# strings (which fail silently).
+win="address:$addr"
+
+# hyprctl --batch wants the commands as ONE ';'-separated argument with no
+# stray leading whitespace, so join them here rather than passing them
+# individually.
+batch() {
+  local IFS=';'
+  hyprctl -q --batch "$*"
+}
+
 if [ "$pinned" = "true" ]; then
-  hyprctl -q --batch \
-    "dispatch pin address:$addr;" \
-    "dispatch togglefloating address:$addr;" \
-    "dispatch tagwindow -pop address:$addr;"
+  batch \
+    "dispatch hl.dsp.window.pin({ window = '$win' })" \
+    "dispatch hl.dsp.window.float({ action = 'toggle', window = '$win' })" \
+    "dispatch hl.dsp.window.tag({ tag = '-pop', window = '$win' })"
 else
-  hyprctl -q --batch \
-    "dispatch togglefloating address:$addr;" \
-    "dispatch centerwindow address:$addr;" \
-    "dispatch pin address:$addr;" \
-    "dispatch alterzorder top address:$addr;" \
-    "dispatch tagwindow +pop address:$addr;"
+  batch \
+    "dispatch hl.dsp.window.float({ action = 'toggle', window = '$win' })" \
+    "dispatch hl.dsp.window.center({ window = '$win' })" \
+    "dispatch hl.dsp.window.pin({ window = '$win' })" \
+    "dispatch hl.dsp.window.alter_zorder({ mode = 'top', window = '$win' })" \
+    "dispatch hl.dsp.window.tag({ tag = '+pop', window = '$win' })"
 
   # Plex-specific size override after tagging
   if [[ "$cls" == "tv.plex.plex-bin" ]]; then
-    hyprctl -q dispatch resizeactive exact 960 540
+    hyprctl -q dispatch "hl.dsp.window.resize({ x = 960, y = 540, window = '$win' })"
   fi
 fi

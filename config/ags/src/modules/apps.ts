@@ -1,8 +1,8 @@
 import { Gdk, Gtk } from "ags/gtk4";
 import { execAsync } from "ags/process";
+import { dispatchLua, luaString } from "./hyprland";
 
 import AstalApps from "gi://AstalApps";
-import AstalHyprland from "gi://AstalHyprland";
 
 
 export let uwsmIsActive: boolean = false;
@@ -28,13 +28,15 @@ export function getAstalApps(): AstalApps.Apps {
 }
 
 /** handles running with uwsm if it's installed */
-export function execApp(app: AstalApps.Application|string, dispatchExecArgs?: string) {
-    const executable = (typeof app === "string") ? app 
+export function execApp(app: AstalApps.Application|string) {
+    const executable = (typeof app === "string") ? app
         : app.executable.replace(/%[fFcuUik]/g, "");
 
-    AstalHyprland.get_default().dispatch("exec", 
-        `${dispatchExecArgs ? `${dispatchExecArgs} ` : ""}${uwsmIsActive ? "uwsm-app -- " : ""}${executable}`
-    );
+    // Launched through Hyprland (rather than spawned from ags) so the process is
+    // owned by the compositor and survives a bar restart.
+    dispatchLua(`hl.dsp.exec_cmd(${luaString(
+        `${uwsmIsActive ? "uwsm-app -- " : ""}${executable}`
+    )})`);
 }
 
 export function lookupIcon(name: string): boolean {

@@ -11,7 +11,7 @@ o.bind("XF86Calculator", "Calculator", "gnome-calculator")
 o.bind("SUPER + SHIFT + SPACE", "Restart top bar", "omarchy-restart-bar")
 o.bind("SUPER + CTRL + SPACE", "Next background in theme", "omarchy-theme-bg-next")
 o.bind("SUPER + SHIFT + CTRL + SPACE", "Theme menu", "omarchy-menu theme")
-o.bind("SUPER + BACKSPACE", "Toggle window transparency", [[hyprctl dispatch setprop "address:$(hyprctl activewindow -j | jq -r '.address')" opaque toggle]])
+o.bind("SUPER + BACKSPACE", "Toggle window transparency", [[hyprctl dispatch "hl.dsp.window.set_prop({ window = 'address:$(hyprctl activewindow -j | jq -r .address)', prop = 'opaque', value = 'toggle' })"]])
 o.bind("SUPER + SHIFT + BACKSPACE", "Toggle workspace gaps", "omarchy-hyprland-workspace-toggle-gaps")
 
 -- Notifications
